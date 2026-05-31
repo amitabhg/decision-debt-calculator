@@ -1,0 +1,237 @@
+Build a polished single-file web app named “Decision Debt Calculator” that helps students and professionals compare 3 to 5 life options such as MBA, job switch, startup, certification, higher studies, or freelancing.
+Think like a senior product designer and frontend engineer. Make the UX feel like a real shipped SaaS tool
+
+Core user problem:
+People struggle to choose between important career or business paths because trade-offs are hard to compare clearly. The app should reduce decision anxiety by converting subjective thinking into a weighted comparison system with clear rankings, visual feedback, and plain-language explanations.
+
+Product goal:
+Create a decision-support web app that feels premium, modern, and practical. The user enters several options, sets factor weights, scores each option, and instantly sees which path ranks highest under different scenarios.
+
+App type:
+Interactive web app / decision dashboard
+No backend required
+Static HTML/CSS/JS only
+All logic client-side
+No localStorage/sessionStorage dependency
+Responsive for desktop and mobile
+
+Design direction:
+Use a clean, credible, high-trust product aesthetic.
+Avoid generic AI-looking gradients, glowing blobs, or overdecorated SaaS layouts.
+Use neutral surfaces with one restrained accent color.
+Use compact web app typography, not oversized landing-page typography.
+The app should feel like a serious decision tool for ambitious students and professionals.
+Prioritize clarity, confidence, and speed of use.
+
+Brand:
+Project name: Decision Debt Calculator
+Include a simple custom inline SVG logo that visually suggests balance, trade-offs, or weighted comparison.
+Provide light mode and dark mode with a toggle.
+
+Main workflow:
+1. User enters a decision title, such as “What should I do next?”
+2. User creates 3–5 options, for example MBA, job switch, startup
+3. User reviews or edits default criteria
+4. User assigns importance weights to criteria
+5. User scores each option against each criterion
+6. Rankings update instantly
+7. User toggles scenario views like Short Term, Growth, and Safety
+8. App generates recommendation text explaining why one option leads and what trade-offs exist
+9. User can print or export a clean report-style summary view
+
+Default criteria:
+- Salary / earning potential
+- Learning / skill growth
+- Risk
+- Time to payoff
+- Flexibility
+- Passion / personal fit
+
+Let the user:
+- Rename criteria
+- Add or remove criteria
+- Adjust criterion weights with sliders or number inputs
+- Add, edit, duplicate, or remove options
+- Score each option on a clear fixed scale, preferably 1 to 10
+- See totals recalculate in real time
+
+Scoring logic:
+- Weighted decision matrix model
+- Each option has a score per criterion
+- Final weighted score = sum of (criterion weight × option score normalized to scale)
+- Show both raw score and weighted contribution if useful
+- Rank options from highest to lowest
+- Handle ties gracefully
+- Clearly indicate top recommendation
+
+Scenario mode:
+Include quick scenario toggles that automatically rebalance weights:
+- Best for short term
+- Best for growth
+- Best for safety
+- Best for freedom
+- Balanced default
+
+Example:
+Short term should favor salary and time to payoff
+Growth should favor learning and future upside
+Safety should favor low risk and stability
+Freedom should favor flexibility and passion
+
+Also allow manual weight editing after a scenario is applied.
+
+Required UI sections:
+1. Header
+- App title
+- short one-line description
+- theme toggle
+- reset action
+- sample data action
+
+2. Decision setup panel
+- decision title
+- list of options
+- add option button
+
+3. Criteria weight panel
+- editable criteria list
+- weight sliders
+- total weight indicator
+- one-click scenario presets
+
+4. Scoring matrix
+- rows = criteria
+- columns = options
+- editable scores
+- clear labels and sticky headers if needed on desktop
+- mobile-friendly stacked alternative layout on small screens
+
+5. Results panel
+- ranked cards or table
+- weighted totals
+- confidence/trade-off summary
+- highlight winner
+- show gap between top options
+
+6. Visualization panel
+Include at least two visualizations:
+- horizontal bar chart for overall weighted scores
+- radar chart or spider chart comparing options across criteria
+Charts must update live as inputs change.
+Use a polished chart library via CDN if needed.
+
+7. Recommendation explanation
+Generate plain-language guidance such as:
+- “MBA ranks highest for long-term growth because it scores strongly on learning and salary upside, but it loses on time to payoff.”
+- “Job switch is the strongest short-term option because it improves income faster with lower risk.”
+- “Startup has the highest upside and passion fit, but also the highest uncertainty.”
+
+This explanation must:
+- be dynamic
+- mention top strengths
+- mention at least one trade-off
+- adapt to scenario mode
+
+8. Report / export view
+Create a print-friendly report section that looks like a PDF summary when printed.
+Include:
+- decision title
+- selected scenario
+- criteria and weights
+- option rankings
+- final recommendation
+- trade-off notes
+- date generated
+Support:
+- Print to PDF using browser print
+- Screenshot-friendly clean summary layout
+Optional: include a “Download summary” button that opens print mode or creates a styled printable view
+
+Important UX requirements:
+- Real-time updates with no page reload
+- Strong empty states and helpful defaults
+- Clear onboarding hints for first use
+- Include sample dataset for MBA vs Job Switch vs Startup
+- Compact but beautiful spacing
+- Accessible labels and keyboard-friendly inputs
+- Touch-friendly controls on mobile
+- Use tabular numbers for scores and totals
+- Include microcopy that reduces anxiety and makes the app feel supportive, not robotic
+
+Suggested default sample data:
+Options:
+- MBA
+- Job Switch
+- Startup
+
+Sample scoring idea:
+MBA: high learning, medium salary short term, medium flexibility, medium-high passion, medium risk, slower payoff
+Job Switch: high salary short term, medium learning, lower risk, fast payoff, medium flexibility
+Startup: very high upside and passion, very high risk, low short-term payoff, high flexibility
+
+Design system requirements:
+- Single accent color only
+- Neutral backgrounds and layered surfaces
+- Rounded but not bubbly cards
+- Compact web app heading scale
+- Sans-serif UI font loaded from CDN
+- Strong contrast in both themes
+- Do not use giant hero text
+- Keep it product-like, not marketing-page-like
+
+Technical requirements:
+- Deliver as one self-contained HTML file with embedded CSS and JS
+- Use semantic HTML
+- No frameworks required, but lightweight CDN libraries are acceptable
+- If using charts, prefer Chart.js or another CDN library
+- No backend
+- No login
+- No persistence required
+- Use in-memory state only
+- Ensure mobile responsiveness
+- Add comments only where useful, not excessive
+
+Logic requirements:
+- Keep state centralized in a JS object
+- Separate concerns: state, calculations, rendering, chart updates, explanation generation
+- Create reusable functions:
+  - initializeSampleData()
+  - calculateWeightedScores()
+  - applyScenarioPreset()
+  - rankOptions()
+  - generateRecommendationText()
+  - renderAll()
+  - printReport()
+
+Edge cases:
+- Prevent fewer than 2 options
+- Warn if all weights are zero
+- Support renamed criteria
+- Keep charts stable when criteria count changes
+- Handle blank values safely
+- Support up to 5 options cleanly
+- Make mobile scoring usable even with many criteria
+
+Nice-to-have enhancements:
+- Sensitivity insight: show which criterion most changes the winner
+- “What changed?” note after toggling scenarios
+- Trade-off badge labels like “Fastest payoff”, “Safest”, “Highest upside”, “Most flexible”
+- Animate score changes smoothly
+- Add subtle confidence indicator based on score gap between rank 1 and rank 2
+
+Output expectations:
+Return complete production-ready HTML, CSS, and JS in one file.
+Make the UI look refined and portfolio-worthy.
+Do not give a basic form app.
+Build a premium mini-product that someone would proudly show in a project portfolio.
+
+Also include:
+- a short explanation inside the UI of how weighted scoring works
+- one preloaded sample comparison
+- a polished printable report section
+
+Also add section with good color coding and live feed for below sections: this has to be dynamice based on option below live feed should come from net with best suggestion where user can click and get immediate ideas.
+Example:
+live feed from linked in or naukri or any jobsite about latest jobs opening currently in market
+Best MBS college and it ranking with review link from internet or google
+Best startup for this year so far and ideas to go for startup and implementation plans (few option)

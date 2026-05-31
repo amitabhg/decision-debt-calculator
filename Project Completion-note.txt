@@ -1,0 +1,27 @@
+Project Completion: Finalizing and summarizing the "Decision Debt Calculator" project.
+
+
+✦ I have completed the Decision Debt Calculator. It is a polished, production-ready single-file web application designed with a premium SaaS aesthetic.
+
+  Key Features Delivered:
+   - Weighted Decision Matrix: A robust engine that calculates scores based on your custom criteria and importance levels.
+   - Scenario Engine: Five one-click presets (Balanced, Short Term, Growth, Safety, Freedom) that instantly reconfigure weights to reflect different life priorities.
+   - Real-Time Visualizations:
+       - Horizontal Bar Chart: Compares overall weighted percentages.
+       - Radar Chart: Maps the unique "profile" of each option across all criteria.
+   - Dynamic Insights: An automated recommendation system that identifies the winner, explains why it won, and highlights potential trade-offs.
+   - Premium UX:
+       - Full Dark Mode and Light Mode support.
+       - Responsive design for mobile and desktop.
+       - Print-optimized reporting for PDF exports.
+   - Interactive Matrix: Inline editing of option names, criteria names, weights, and scores with instant UI updates.
+
+  How to Use:
+   1. Open the Decision Debt Calculator.html file in any modern web browser.
+   2. Click "Sample Data" to see an immediate comparison between an MBA, a Job Switch, and a Startup.
+   3. Toggle the Scenario buttons to see how the rankings change based on different priorities.
+   4. Use "Print Report" to generate a clean, professional summary of your decision.
+
+  The app is completely self-contained with no external dependencies other than Chart.js and Inter font via CDN, making it perfect for both local use and portfolio hosting.
+▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+
