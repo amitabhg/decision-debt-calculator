@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decision Debt Calculator | Professional Decision Support</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #10b981; /* Emerald-500 */
+            --primary-dark: #059669;
+            --bg-base: #f9fafb;
+            --bg-surface: #ffffff;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --border: #e5e7eb;
+            --radius: 8px;
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        }
+
+        [data-theme="dark"] {
+            --bg-base: #111827;
+            --bg-surface: #1f2937;
+            --text-main: #f9fafb;
+            --text-muted: #9ca3af;
+            --border: #374151;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            line-height: 1.5;
+            transition: background-color 0.3s ease;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-svg {
+            width: 32px;
+            height: 32px;
+            color: var(--primary);
+        }
+
+        .brand h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+        }
+
+        .actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        button {
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.875rem;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            background: var(--bg-surface);
+            color: var(--text-main);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        button:hover {
+            background: var(--bg-base);
+        }
+
+        button.btn-primary {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        button.btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+        }
+
+        .card-title {
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        /* Forms & Inputs */
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 0.625rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            background: var(--bg-base);
+            color: var(--text-main);
+            font-size: 0.875rem;
+        }
+
+        .option-item {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .criterion-row {
+            display: grid;
+            grid-template-columns: 1fr 120px 40px;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--primary);
+        }
+
+        /* Scenario Presets */
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .scenario-btn {
+            font-size: 0.75rem;
+            padding: 0.375rem;
+            text-align: center;
+            justify-content: center;
+        }
+
+        .scenario-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Scoring Matrix */
+        .matrix-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+
+        th, td {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+        }
+
+        th {
+            font-weight: 600;
+            color: var(--text-muted);
+            background: var(--bg-base);
+            position: sticky;
+            top: 0;
+        }
+
+        .score-input {
+            width: 60px;
+            padding: 0.25rem;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            background: var(--bg-base);
+            color: var(--text-main);
+            text-align: center;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Results */
+        .ranking-list {
+            list-style: none;
+        }
+
+        .ranking-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 0.75rem;
+            background: var(--bg-surface);
+            transition: transform 0.2s;
+        }
+
+        .ranking-item.winner {
+            border-color: var(--primary);
+            background: rgba(16, 185, 129, 0.05);
+            transform: scale(1.02);
+        }
+
+        .rank-num {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--bg-base);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            margin-right: 1rem;
+            font-size: 0.75rem;
+        }
+
+        .winner .rank-num {
+            background: var(--primary);
+            color: white;
+        }
+
+        .rank-name {
+            flex: 1;
+            font-weight: 600;
+        }
+
+        .rank-score {
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            color: var(--primary);
+        }
+
+        .recommendation-box {
+            padding: 1.25rem;
+            background: var(--bg-base);
+            border-radius: var(--radius);
+            border-left: 4px solid var(--primary);
+            margin-top: 1.5rem;
+        }
+
+        .recommendation-text {
+            font-size: 0.9375rem;
+            color: var(--text-main);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 1rem;
+        }
+
+        /* Utilities */
+        .mt-4 { margin-top: 1rem; }
+        .text-center { text-align: center; }
+        .flex-center { display: flex; align-items: center; gap: 0.5rem; }
+
+        /* Print Styles */
+        @media print {
+            body { background: white; color: black; }
+            .no-print { display: none !important; }
+            .container { max-width: 100%; padding: 0; }
+            .card { border: none; box-shadow: none; padding: 0; margin-bottom: 2rem; }
+            .grid { display: block; }
+            .ranking-item { break-inside: avoid; }
+            .chart-container { page-break-inside: avoid; }
+        }
+
+        /* Tooltip-like help */
+        .help-text {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        /* Insights Feed Styles */
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.25rem;
+            margin-top: 1rem;
+        }
+
+        .insight-card {
+            padding: 1.25rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .insight-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .insight-badge {
+            font-size: 0.625rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            width: fit-content;
+        }
+
+        .insight-title {
+            font-size: 0.9375rem;
+            font-weight: 700;
+        }
+
+        .insight-desc {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            flex: 1;
+        }
+
+        .insight-link {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .insight-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Color Coding */
+        .theme-job { border-left: 4px solid #3b82f6; }
+        .theme-job .insight-badge { background: #dbeafe; color: #1e40af; }
+        
+        .theme-edu { border-left: 4px solid #8b5cf6; }
+        .theme-edu .insight-badge { background: #ede9fe; color: #5b21b6; }
+        
+        .theme-startup { border-left: 4px solid #f59e0b; }
+        .theme-startup .insight-badge { background: #fef3c7; color: #92400e; }
+        
+        .theme-general { border-left: 4px solid var(--primary); }
+        .theme-general .insight-badge { background: #dcfce7; color: #166534; }
+    </style>
+</head>
+<body data-theme="light">
+    <div class="container">
+        <header>
+            <div class="brand">
+                <svg class="logo-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 3v18M3 12h18M5 19l14-14M19 19L5 5"/>
+                </svg>
+                <div>
+                    <h1>Decision Debt Calculator</h1>
+                    <p class="help-text">Quantify trade-offs. Choose with confidence.</p>
+                </div>
+            </div>
+            <div class="actions no-print">
+                <button onclick="loadSampleData()">Sample Data</button>
+                <button onclick="resetApp()">Reset</button>
+                <button onclick="toggleTheme()" id="theme-toggle">🌙 Dark</button>
+                <button class="btn-primary" onclick="window.print()">Print Report</button>
+            </div>
+        </header>
+
+        <main>
+            <div class="grid">
+                <!-- Left Column: Inputs -->
+                <div class="no-print">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">1. Setup</h2>
+                        </div>
+                        <div class="form-group">
+                            <label>Decision Title</label>
+                            <input type="text" id="decision-title" placeholder="e.g., What should I do next?" oninput="updateTitle(this.value)">
+                        </div>
+                        <div class="form-group">
+                            <label>Options (3-5 recommended)</label>
+                            <div id="options-list">
+                                <!-- Options injected here -->
+                            </div>
+                            <button class="mt-4" onclick="addOption()">+ Add Option</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">2. Criteria & Weights</h2>
+                        </div>
+                        <div class="scenario-grid">
+                            <button class="scenario-btn" onclick="applyScenario('balanced')" id="scenario-balanced">Balanced</button>
+                            <button class="scenario-btn" onclick="applyScenario('short-term')" id="scenario-short-term">Short Term</button>
+                            <button class="scenario-btn" onclick="applyScenario('growth')" id="scenario-growth">Growth</button>
+                            <button class="scenario-btn" onclick="applyScenario('safety')" id="scenario-safety">Safety</button>
+                            <button class="scenario-btn" onclick="applyScenario('freedom')" id="scenario-freedom">Freedom</button>
+                        </div>
+                        <div id="criteria-list">
+                            <!-- Criteria injected here -->
+                        </div>
+                        <p class="help-text mt-4">Weights are relative. Total weight: <span id="total-weight-display">100</span>%</p>
+                    </div>
+                </div>
+
+                <!-- Right Column: Scoring & Results -->
+                <div>
+                    <div class="card no-print">
+                        <div class="card-header">
+                            <h2 class="card-title">3. Scoring Matrix</h2>
+                            <span class="help-text">Scale: 1 (Poor) to 10 (Excellent)</span>
+                        </div>
+                        <div class="matrix-container">
+                            <table id="scoring-matrix">
+                                <thead>
+                                    <tr id="matrix-header">
+                                        <!-- Headers injected here -->
+                                    </tr>
+                                </thead>
+                                <tbody id="matrix-body">
+                                    <!-- Rows injected here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">4. Final Rankings</h2>
+                        </div>
+                        <div id="rankings-container" class="ranking-list">
+                            <!-- Rankings injected here -->
+                        </div>
+                        
+                        <div class="recommendation-box" id="recommendation-box">
+                            <p class="recommendation-text" id="recommendation-text">
+                                Complete the scoring to see your personalized recommendation.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Weighted Score Comparison</h2>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="barChart"></canvas>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Option Profiles</h2>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="card no-print">
+                <div class="card-header">
+                    <h2 class="card-title">Market Insights & Discovery Feed</h2>
+                    <span class="help-text">Dynamic intelligence based on your options</span>
+                </div>
+                <div id="insights-feed" class="insights-grid">
+                    <!-- Dynamic cards injected here -->
+                </div>
+            </div>
+        </main>
+
+        <footer class="mt-4 text-center help-text no-print" style="padding: 2rem 0;">
+            <p><strong>How it works:</strong> This tool uses a <em>Weighted Decision Matrix</em>. Each option is scored against several criteria. These scores are then multiplied by the criterion's importance (weight) to calculate a final score. This removes emotional bias and highlights the best logical choice.</p>
+        </footer>
+
+        <!-- Print only summary -->
+        <div id="print-summary" class="no-screen" style="display: none;">
+            <h1 id="print-title">Decision Report</h1>
+            <p id="print-date"></p>
+            <div id="print-rankings"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- State Management ---
+        let state = {
+            title: "My Career Decision",
+            options: [],
+            criteria: [
+                { id: 'c1', name: 'Salary / Earning Potential', weight: 20 },
+                { id: 'c2', name: 'Learning / Skill Growth', weight: 20 },
+                { id: 'c3', name: 'Risk (Lower is Better)', weight: 15 },
+                { id: 'c4', name: 'Time to Payoff', weight: 15 },
+                { id: 'c5', name: 'Flexibility', weight: 15 },
+                { id: 'c6', name: 'Passion / Personal Fit', weight: 15 }
+            ],
+            currentScenario: 'balanced',
+            theme: 'light'
+        };
+
+        const scenarioPresets = {
+            'balanced': { 'c1': 20, 'c2': 20, 'c3': 15, 'c4': 15, 'c5': 15, 'c6': 15 },
+            'short-term': { 'c1': 40, 'c2': 10, 'c3': 10, 'c4': 25, 'c5': 10, 'c6': 5 },
+            'growth': { 'c1': 15, 'c2': 40, 'c3': 15, 'c4': 10, 'c5': 10, 'c6': 10 },
+            'safety': { 'c1': 20, 'c2': 10, 'c3': 30, 'c4': 20, 'c5': 10, 'c6': 10 },
+            'freedom': { 'c1': 10, 'c2': 10, 'c3': 10, 'c4': 10, 'c5': 35, 'c6': 25 }
+        };
+
+        let barChart = null;
+        let radarChart = null;
+
+        // --- Initialization ---
+        function init() {
+            loadSampleData();
+            updateCharts();
+        }
+
+        function loadSampleData() {
+            state.title = "MBA vs. Job Switch vs. Startup";
+            state.options = [
+                { id: 'o1', name: 'Executive MBA', scores: { 'c1': 8, 'c2': 9, 'c3': 4, 'c4': 3, 'c5': 4, 'c6': 7 } },
+                { id: 'o2', name: 'Senior Dev (Job Switch)', scores: { 'c1': 9, 'c2': 6, 'c3': 8, 'c4': 9, 'c5': 7, 'c6': 6 } },
+                { id: 'o3', name: 'EdTech Startup', scores: { 'c1': 4, 'c2': 10, 'c3': 2, 'c4': 4, 'c5': 9, 'c6': 10 } }
+            ];
+            state.currentScenario = 'balanced';
+            document.getElementById('decision-title').value = state.title;
+            renderAll();
+        }
+
+        function resetApp() {
+            state.options = [
+                { id: 'o1', name: 'Option 1', scores: {} },
+                { id: 'o2', name: 'Option 2', scores: {} }
+            ];
+            state.criteria.forEach(c => {
+                state.options.forEach(o => o.scores[c.id] = 5);
+            });
+            renderAll();
+        }
+
+        // --- Core Logic ---
+        function calculateScores() {
+            const results = state.options.map(option => {
+                let total = 0;
+                let maxPossible = 0;
+                state.criteria.forEach(criterion => {
+                    const score = option.scores[criterion.id] || 0;
+                    total += (score * criterion.weight);
+                    maxPossible += (10 * criterion.weight);
+                });
+                const weightedScore = maxPossible > 0 ? (total / maxPossible) * 100 : 0;
+                return { ...option, weightedScore: parseFloat(weightedScore.toFixed(1)) };
+            });
+            return results.sort((a, b) => b.weightedScore - a.weightedScore);
+        }
+
+        // --- UI Rendering ---
+        function renderAll() {
+            renderOptions();
+            renderCriteria();
+            renderMatrix();
+            renderRankings();
+            renderInsights(); // New
+            updateCharts();
+        }
+
+        function renderInsights() {
+            const container = document.getElementById('insights-feed');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            state.options.forEach(opt => {
+                const name = opt.name.toLowerCase();
+                let card = null;
+
+                if (name.includes('mba') || name.includes('study') || name.includes('higher') || name.includes('edu')) {
+                    card = createInsightCard('Academic Intelligence', opt.name, 
+                        `Compare global rankings, reviews, and ROI for ${opt.name} programs.`,
+                        `https://www.google.com/search?q=best+${encodeURIComponent(opt.name)}+colleges+rankings+reviews`,
+                        'theme-edu', 'Check Rankings');
+                } else if (name.includes('job') || name.includes('switch') || name.includes('senior') || name.includes('dev') || name.includes('role')) {
+                    card = createInsightCard('Market Opportunities', opt.name, 
+                        `Explore active ${opt.name} openings on top professional networks.`,
+                        `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(opt.name)}`,
+                        'theme-job', 'View Openings');
+                } else if (name.includes('startup') || name.includes('entrepreneur') || name.includes('business') || name.includes('venture')) {
+                    card = createInsightCard('Venture Trends', opt.name, 
+                        `Analyze this year's top startups and validation plans for ${opt.name} ideas.`,
+                        `https://www.producthunt.com/search?q=${encodeURIComponent(opt.name)}`,
+                        'theme-startup', 'Browse Trends');
+                } else {
+                    card = createInsightCard('General Insight', opt.name, 
+                        `Get the latest industry perspectives and implementation plans for ${opt.name}.`,
+                        `https://www.google.com/search?q=${encodeURIComponent(opt.name)}+career+path+implementation+plan`,
+                        'theme-general', 'Get Ideas');
+                }
+                
+                if (card) container.appendChild(card);
+            });
+        }
+
+        function createInsightCard(badge, title, desc, link, theme, linkText) {
+            const div = document.createElement('div');
+            div.className = `insight-card ${theme}`;
+            div.innerHTML = `
+                <span class="insight-badge">${badge}</span>
+                <h3 class="insight-title">${title}</h3>
+                <p class="insight-desc">${desc}</p>
+                <a href="${link}" target="_blank" class="insight-link">
+                    ${linkText}
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg>
+                </a>
+            `;
+            return div;
+        }
+
+        function renderOptions() {
+            const container = document.getElementById('options-list');
+            container.innerHTML = state.options.map(option => `
+                <div class="option-item">
+                    <input type="text" value="${option.name}" oninput="updateOptionName('${option.id}', this.value)">
+                    <button onclick="removeOption('${option.id}')" ${state.options.length <= 2 ? 'disabled' : ''}>✕</button>
+                </div>
+            `).join('');
+        }
+
+        function renderCriteria() {
+            const container = document.getElementById('criteria-list');
+            let totalWeight = state.criteria.reduce((sum, c) => sum + c.weight, 0);
+            document.getElementById('total-weight-display').innerText = totalWeight;
+
+            container.innerHTML = state.criteria.map(c => `
+                <div class="criterion-row">
+                    <input type="text" value="${c.name}" oninput="updateCriterionName('${c.id}', this.value)" style="border:none; background:transparent; font-size:0.875rem; font-weight:500;">
+                    <input type="range" min="0" max="50" value="${c.weight}" oninput="updateWeight('${c.id}', this.value)">
+                    <span style="font-size:0.75rem; font-weight:700; text-align:right;">${c.weight}</span>
+                </div>
+            `).join('');
+
+            // Update scenario button states
+            document.querySelectorAll('.scenario-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.id === `scenario-${state.currentScenario}`);
+            });
+        }
+
+        function renderMatrix() {
+            const header = document.getElementById('matrix-header');
+            const body = document.getElementById('matrix-body');
+
+            header.innerHTML = '<th>Criteria</th>' + state.options.map(o => `<th>${o.name}</th>`).join('');
+
+            body.innerHTML = state.criteria.map(c => `
+                <tr>
+                    <td><span class="help-text" style="color:var(--text-main); font-weight:500;">${c.name}</span></td>
+                    ${state.options.map(o => `
+                        <td>
+                            <input type="number" class="score-input" min="1" max="10" value="${o.scores[c.id] || 5}" 
+                                   oninput="updateScore('${o.id}', '${c.id}', this.value)">
+                        </td>
+                    `).join('')}
+                </tr>
+            `).join('');
+        }
+
+        function renderRankings() {
+            const ranked = calculateScores();
+            const container = document.getElementById('rankings-container');
+            
+            container.innerHTML = ranked.map((o, index) => `
+                <div class="ranking-item ${index === 0 ? 'winner' : ''}">
+                    <div class="rank-num">${index + 1}</div>
+                    <div class="rank-name">${o.name}</div>
+                    <div class="rank-score">${o.weightedScore}%</div>
+                </div>
+            `).join('');
+
+            generateRecommendation(ranked);
+        }
+
+        function generateRecommendation(ranked) {
+            const winner = ranked[0];
+            const runnerUp = ranked[1];
+            const textElement = document.getElementById('recommendation-text');
+            const box = document.getElementById('recommendation-box');
+
+            if (!winner || winner.weightedScore === 0) {
+                textElement.innerText = "Complete the scoring to see your personalized recommendation.";
+                return;
+            }
+
+            // Find winner's best attribute
+            let bestAttrId = '';
+            let maxScore = -1;
+            state.criteria.forEach(c => {
+                if (winner.scores[c.id] > maxScore) {
+                    maxScore = winner.scores[c.id];
+                    bestAttrId = c.id;
+                }
+            });
+            const bestAttr = state.criteria.find(c => c.id === bestAttrId).name;
+
+            // Find a trade-off (something where runner-up is better, or just winner's lowest)
+            let tradeOffAttr = '';
+            let minScore = 11;
+            state.criteria.forEach(c => {
+                if (winner.scores[c.id] < minScore) {
+                    minScore = winner.scores[c.id];
+                    tradeOffAttr = c.id;
+                }
+            });
+            const tradeOff = state.criteria.find(c => c.id === tradeOffAttr).name;
+
+            let html = `<strong>${winner.name}</strong> is your top choice with a score of ${winner.weightedScore}%. `;
+            html += `It ranks highest mainly due to its strength in <strong>${bestAttr}</strong>. `;
+            
+            if (runnerUp) {
+                const gap = (winner.weightedScore - runnerUp.weightedScore).toFixed(1);
+                html += `It leads <strong>${runnerUp.name}</strong> by a margin of ${gap}%. `;
+            }
+
+            html += `<br><br><small>💡 <strong>Trade-off:</strong> Consider that while it wins overall, it is relatively weaker in <strong>${tradeOff}</strong> compared to other factors.</small>`;
+            
+            textElement.innerHTML = html;
+        }
+
+        // --- Event Handlers ---
+        function updateTitle(val) { state.title = val; }
+
+        function updateOptionName(id, name) {
+            const opt = state.options.find(o => o.id === id);
+            if (opt) opt.name = name;
+            renderMatrix();
+            renderRankings();
+            updateCharts();
+        }
+
+        function addOption() {
+            if (state.options.length >= 5) return;
+            const id = 'o' + Date.now();
+            const newOpt = { id, name: 'New Option', scores: {} };
+            state.criteria.forEach(c => newOpt.scores[c.id] = 5);
+            state.options.push(newOpt);
+            renderAll();
+        }
+
+        function removeOption(id) {
+            if (state.options.length <= 2) return;
+            state.options = state.options.filter(o => o.id !== id);
+            renderAll();
+        }
+
+        function updateCriterionName(id, name) {
+            const crit = state.criteria.find(c => c.id === id);
+            if (crit) crit.name = name;
+            renderMatrix();
+            updateCharts();
+        }
+
+        function updateWeight(id, weight) {
+            const crit = state.criteria.find(c => c.id === id);
+            if (crit) crit.weight = parseInt(weight);
+            state.currentScenario = 'custom';
+            renderCriteria();
+            renderRankings();
+            updateCharts();
+        }
+
+        function updateScore(optId, critId, score) {
+            const opt = state.options.find(o => o.id === optId);
+            if (opt) opt.scores[critId] = parseInt(score);
+            renderRankings();
+            updateCharts();
+        }
+
+        function applyScenario(scenario) {
+            state.currentScenario = scenario;
+            const weights = scenarioPresets[scenario];
+            state.criteria.forEach(c => {
+                if (weights[c.id] !== undefined) c.weight = weights[c.id];
+            });
+            renderCriteria();
+            renderRankings();
+            updateCharts();
+        }
+
+        function toggleTheme() {
+            const body = document.body;
+            const btn = document.getElementById('theme-toggle');
+            if (body.getAttribute('data-theme') === 'light') {
+                body.setAttribute('data-theme', 'dark');
+                btn.innerText = '☀️ Light';
+            } else {
+                body.setAttribute('data-theme', 'light');
+                btn.innerText = '🌙 Dark';
+            }
+            updateCharts(); // Refresh charts for theme-specific colors
+        }
+
+        // --- Charts ---
+        function updateCharts() {
+            const isDark = document.body.getAttribute('data-theme') === 'dark';
+            const textColor = isDark ? '#f9fafb' : '#111827';
+            const gridColor = isDark ? '#374151' : '#e5e7eb';
+            
+            const ranked = calculateScores();
+            const labels = ranked.map(o => o.name);
+            const data = ranked.map(o => o.weightedScore);
+
+            // Bar Chart
+            const ctxBar = document.getElementById('barChart').getContext('2d');
+            if (barChart) barChart.destroy();
+            barChart = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Weighted Score %',
+                        data: data,
+                        backgroundColor: '#10b981',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { max: 100, grid: { color: gridColor }, ticks: { color: textColor } },
+                        y: { grid: { display: false }, ticks: { color: textColor } }
+                    }
+                }
+            });
+
+            // Radar Chart
+            const ctxRadar = document.getElementById('radarChart').getContext('2d');
+            if (radarChart) radarChart.destroy();
+            
+            const radarDatasets = state.options.map((o, i) => {
+                const colors = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'];
+                return {
+                    label: o.name,
+                    data: state.criteria.map(c => o.scores[c.id] || 0),
+                    borderColor: colors[i % colors.length],
+                    backgroundColor: colors[i % colors.length] + '22',
+                    borderWidth: 2,
+                    pointRadius: 3
+                };
+            });
+
+            radarChart = new Chart(ctxRadar, {
+                type: 'radar',
+                data: {
+                    labels: state.criteria.map(c => c.name),
+                    datasets: radarDatasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            min: 0,
+                            max: 10,
+                            ticks: { display: false, stepSize: 2 },
+                            grid: { color: gridColor },
+                            angleLines: { color: gridColor },
+                            pointLabels: { color: textColor, font: { size: 10 } }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: textColor, boxWidth: 12, font: { size: 11 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- Print Preparation ---
+        window.onbeforeprint = () => {
+            const printSummary = document.getElementById('print-summary');
+            const ranked = calculateScores();
+            document.getElementById('print-title').innerText = state.title;
+            document.getElementById('print-date').innerText = "Generated on: " + new Date().toLocaleDateString();
+            
+            let html = `<h3>Rankings</h3><ol style="margin-left: 20px;">`;
+            ranked.forEach(o => {
+                html += `<li style="margin-bottom: 8px;"><strong>${o.name}</strong>: ${o.weightedScore}%</li>`;
+            });
+            html += `</ol><br>`;
+            html += `<h3>Weights Used</h3><ul style="margin-left: 20px;">`;
+            state.criteria.forEach(c => {
+                html += `<li>${c.name}: ${c.weight}%</li>`;
+            });
+            html += `</ul><br>`;
+            html += `<h3>Final Recommendation</h3><p>${document.getElementById('recommendation-text').innerText}</p>`;
+            
+            document.getElementById('print-rankings').innerHTML = html;
+        };
+
+        // Initialize on load
+        window.onload = init;
+    </script>
+</body>
+</html>
